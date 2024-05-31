@@ -1,0 +1,108 @@
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+  const antam = {
+    get_raw_url: function () {
+      return `https://raw.githubusercontent.com/emaspintar-ep/gold-price/main/antam_today_price.json?version=${new Date().getTime()}`
+    },
+    currentDateElm: $("#antamCurrentDate"),
+    currentPriceElm: $("#antamCurrentPrice"),
+    buybackPriceElm: $("#antamBuybackPrice"),
+    tableElm: $("#tableAntam"),
+    buildTrElm: function (items) {
+      let trElm = "";
+      for (item of items){
+        let priceChangeStyle = "";
+        if (item.price_change.startsWith("+")) {
+          priceChangeStyle = `style="color: green;"`
+        } else if (item.price_change.startsWith("-")) {
+          priceChangeStyle = `style="color: red;"`
+        }
+        let priceChangeElm = `(<label ${priceChangeStyle}>${item.price_change}</label>)`
+        trElm += `<tr>
+                    <td style="font-size: 14px;">${item.gram}</td>
+                    <td><label style="font-size: 14px;">${item.price}</label> ${priceChangeElm}</td>
+                  </tr>`
+      };
+      return trElm;
+    },
+    hasBuybackTable: true,
+    colspanSize: 2,
+  };
+  const pegadaian = {
+      get_raw_url: function () {
+        return `https://raw.githubusercontent.com/emaspintar-ep/gold-price/main/pegadaian_today_price.json?version=${new Date().getTime()}`
+      },
+      currentDateElm: $("#pegadaianCurrentDate"),
+      currentPriceElm: $("#pegadaianCurrentPrice"),
+      // buybackPriceElm: $("#pegadaianBuybackPrice"),
+      tableElm: $("#tablePegadaian"),
+      buildTrElm: function (items) {
+        let trElm = "";
+        for (item of items){
+          let priceChangeStyle = "";
+          if (item.price_change.startsWith("+")) {
+            priceChangeStyle = `style="color: green;"`
+          } else if (item.price_change.startsWith("-")) {
+            priceChangeStyle = `style="color: red;"`
+          }
+          let priceChangeElm = `(<label ${priceChangeStyle}>${item.price_change}</label>)`
+
+          let buybackChangeStyle = "";
+          if (item.buyback_change.startsWith("+")) {
+            buybackChangeStyle = `style="color: green;"`
+          } else if (item.buyback_change.startsWith("-")) {
+            buybackChangeStyle = `style="color: red;"`
+          }
+          let buybackChangeElm = `(<label ${buybackChangeStyle}>${item.buyback_change}</label>)`
+          trElm += `<tr>
+                      <td style="font-size: 14px;">${item.gram}</td>
+                      <td><label style="font-size: 14px;">${item.price}</label> ${priceChangeElm}</td>
+                      <td><label style="font-size: 14px;">${item.buyback}</label> ${buybackChangeElm}</td>
+                    </tr>`
+        };
+        return trElm;
+      },
+      hasBuybackTable: false,
+      colspanSize: 3,
+  };
+
+  function buildTable(props){
+    const tableElm = props.tableElm;
+    tableElm.find("tr:gt(0)").remove();
+    tableElm.append(`<tr><td colspan="${props.colspanSize}" style="text-align: center;">Loading data...</td></tr>`)
+
+    $.ajax({
+        type: "GET",
+        url: props.get_raw_url(),
+        success: function (response){
+          let data = JSON.parse(response);
+          let today = data.today;
+          let yesterday = data.yesterday;
+
+          props.currentDateElm.text(`${today.date}:`);
+          props.currentPriceElm.html(`<b style="font-size: 16px; color: #dd9933;">Rp${today.prices[1].price}</b>`);
+
+          if (props.hasBuybackTable) {
+            let buybackChangeStyle = "";
+            if (today.buyback.price_change.startsWith("+")) {
+              buybackChangeStyle = `style="color: green;"`
+            } else if (today.buyback.price_change.startsWith("-")) {
+              buybackChangeStyle = `style="color: red;"`
+            }
+            let buybackChangeElm = `(<label ${buybackChangeStyle}>${today.buyback.price_change}</label>)`
+            props.buybackPriceElm.html(`<b style="font-size: 14px; color: #dd9933;">Rp${today.buyback.price}</b> ${buybackChangeElm}`);
+          }
+
+          tableElm.find("tr:gt(0)").remove();
+          tableElm.append(props.buildTrElm(today.prices))
+        },
+        error: function (err) {
+          console.log(err);
+          tableElm.find("tr:gt(0)").remove();
+          tableElm.append('<tr><td colspan="2" style="text-align: center;">No Data</td></tr>');
+        },
+    });
+  };
+  buildTable(antam);
+  buildTable(pegadaian);
+</script>
