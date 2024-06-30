@@ -3,7 +3,7 @@ import copy
 import requests
 
 req = requests.get(
-    "https://www.galeri24.co.id/harga-emas",
+    "https://www.galeri24.co.id/harga-emas/",
     headers={
         'User-Agent': (
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) '
@@ -70,6 +70,7 @@ def format_price_change(current_price_str, yesterday_price_str):
 
 
 def extract_table_price(page):
+    page = page.split('Harga ANTAM', 1)[1]
     page = page.split('Harga Buyback', 1)[1]
     page = page.split('<div id="UBS">', 1)[0]
     page = page.replace('<div>', "")
